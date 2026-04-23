@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lookahead"
+version = "0.0.2"
+description = "Code for the efficient rollout strategies paper."
+readme = "readme.md"
+requires-python = ">=3.13"
+dependencies = [
+    "scikit-learn",
+    "scipy",
+    "numpy",
+    "qmcpy",
+    "bencherscaffold@git+https://github.com/LeoIV/BencherScaffold@e1c714c30c00b8a699ff87390229e604ebc31cec",
+]

@@ -39,7 +39,7 @@ class AcquisitionFunctionInterface(object):
         guesses = self.evaluate_at_point_list(init_guesses)
         idx_guesses = np.argsort(guesses)
         for i in range(num_restarts):
-            x0 = init_guesses[[idx_guesses[-i]], :]
+            x0 = init_guesses[idx_guesses[-i], :]
             opt_result = minimize(
                 fun=self.joint_function_gradient_eval,
                 method='L-BFGS-B',

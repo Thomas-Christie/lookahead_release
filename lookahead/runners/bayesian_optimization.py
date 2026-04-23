@@ -1,6 +1,7 @@
 import numpy as np
 from lookahead.model.gaussian_process import GaussianProcessSimple as GaussianProcess
 import os
+import logging
 
 class BayesianOptimization(object):
     def __init__(self, search_space):
@@ -8,18 +9,18 @@ class BayesianOptimization(object):
         self.gaussian_process = None
         self.search_space = search_space
 
-    def run(self, f, seed, budget_minus_initialization, initialization_duration=5):
-
-        # Warm start with 5 points, with fixed random seed
+    def run(self, f, seed, budget_minus_initialization, initial_xs):
+        
+        # Load data for consistency with our other experiments
         np.random.seed(seed)
         d = len(self.search_space.domain_bounds)
-        xhist = np.random.rand(initialization_duration, d)
+        xhist = initial_xs
         yhist = f(xhist)
         self.gaussian_process = GaussianProcess(xhist, yhist)
         self.gaussian_process.train()
 
         while budget_minus_initialization > 0:
-
+            logging.info(f"Budget remaining: {budget_minus_initialization}, best y: {np.min(yhist)}")
             # Get next sample point
             xsample = self.get_next_point()
             ysample = f(xsample)
@@ -30,7 +31,7 @@ class BayesianOptimization(object):
             budget_minus_initialization -= 1
 
         xhist, yhist = self.gaussian_process.get_historical_data()
-        self.save_bo_run(yhist, str(f.__name__), seed)
+        return xhist, -1 * yhist # save negative values as other experiments use *maximisation* of the negative objective
 
     def get_next_point(self):
         # To be implemented by each acquisition function
