@@ -9,8 +9,9 @@ class BayesianOptimization(object):
         self.gaussian_process = None
         self.search_space = search_space
 
-    def run(self, f, seed, budget_minus_initialization, initial_xs):
-        
+    def run(self, f, seed, budget_minus_initialization, initial_xs,
+            checkpoint_dir=None, checkpoint_interval=50):
+
         # Load data for consistency with our other experiments
         np.random.seed(seed)
         d = len(self.search_space.domain_bounds)
@@ -30,8 +31,17 @@ class BayesianOptimization(object):
             self.gaussian_process.train()
             budget_minus_initialization -= 1
 
+            if checkpoint_dir is not None and len(xhist) % checkpoint_interval == 0:
+                self._save_checkpoint(checkpoint_dir, seed, len(xhist), xhist, yhist)
+
         xhist, yhist = self.gaussian_process.get_historical_data()
         return xhist, -1 * yhist # save negative values as other experiments use *maximisation* of the negative objective
+
+    def _save_checkpoint(self, checkpoint_dir, seed, iter_num, xhist, yhist):
+        xs_path = os.path.join(checkpoint_dir, f"seed_{seed}_iter_{iter_num}_xs.npy")
+        ys_path = os.path.join(checkpoint_dir, f"seed_{seed}_iter_{iter_num}_ys.npy")
+        np.save(xs_path, xhist)
+        np.save(ys_path, -1 * yhist)
 
     def get_next_point(self):
         # To be implemented by each acquisition function

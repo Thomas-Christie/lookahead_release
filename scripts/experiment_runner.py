@@ -45,14 +45,12 @@ def main():
         ],
     )
 
-    results_dir = f"results/{args.benchmark}"
-    xs_path = f"{results_dir}/seed_{args.seed}_xs.npy"
-    ys_path = f"{results_dir}/seed_{args.seed}_ys.npy"
-    if os.path.exists(xs_path) or os.path.exists(ys_path):
-            raise FileExistsError(
-                f"Results already exist for benchmark={args.benchmark}, seed={args.seed}: {xs_path} / {ys_path}"
-            )
-
+    results_dir = f"results/{args.benchmark}/seed_{args.seed}"
+    if os.path.exists(results_dir):
+        raise FileExistsError(
+            f"Results directory already exists for benchmark={args.benchmark}, seed={args.seed}: {results_dir}"
+        )
+    os.makedirs(results_dir)
 
     problem_metadata = BENCHMARK_METADATA[args.benchmark]
     bencher_benchmark = BencherBenchmark(name=args.benchmark)
@@ -63,10 +61,18 @@ def main():
 
     runner = ExpectedImprovementRunner(search_space=search_space)
     initial_xs = np.load(f"init_points/{args.benchmark}/seed_{args.seed}_initial_points.npy")
-    xs, ys = runner.run(f=bencher_callable, seed=args.seed, budget_minus_initialization=970, initial_xs=initial_xs)
-    os.makedirs(results_dir, exist_ok=True)
-    np.save(xs_path, xs)
-    np.save(ys_path, ys)
+    xs, ys = runner.run(
+        f=bencher_callable,
+        seed=args.seed,
+        budget_minus_initialization=970,
+        initial_xs=initial_xs,
+        checkpoint_dir=results_dir,
+        checkpoint_interval=50,
+    )
+    final_xs_path = f"{results_dir}/seed_{args.seed}_xs.npy"
+    final_ys_path = f"{results_dir}/seed_{args.seed}_ys.npy"
+    np.save(final_xs_path, xs)
+    np.save(final_ys_path, ys)
 
 if __name__ == "__main__":
     main()

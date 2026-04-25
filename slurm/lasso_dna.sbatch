@@ -4,7 +4,7 @@
 #SBATCH --partition=cpu-single
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=6G
+#SBATCH --mem=10G
 #SBATCH --time=48:00:00
 #SBATCH --array=0-19
 #SBATCH -o /home/tu/tu_tu/tu_iiitc01/lookahead_release/logs/lasso_dna_%j_%x_%a.out
