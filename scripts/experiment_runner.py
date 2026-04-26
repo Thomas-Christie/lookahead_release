@@ -1,19 +1,21 @@
 import argparse
+import logging
 import os
-
-import numpy as np
 import random
 
+import numpy as np
+
+from lookahead.model.domain import ClosedInterval, TensorProductDomain
 from lookahead.runners.runners import ExpectedImprovementRunner
 from lookahead.test_problems.bencher import BencherBenchmark
-from lookahead.model.domain import TensorProductDomain, ClosedInterval
 from lookahead.test_problems.metadata import BENCHMARK_METADATA
-import logging
+
 
 def seed_everything(seed: int):
     random.seed(seed)
     np.random.seed(seed)
- 
+
+
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Run Bayesian Optimization Benchmark")
@@ -32,6 +34,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -52,6 +55,8 @@ def main():
         )
     os.makedirs(results_dir)
 
+    logging.info("OMP num threads: %s", os.getenv("OMP_NUM_THREADS"))
+
     problem_metadata = BENCHMARK_METADATA[args.benchmark]
     bencher_benchmark = BencherBenchmark(name=args.benchmark)
     bencher_callable = bencher_benchmark.evaluate_points
@@ -60,7 +65,9 @@ def main():
     search_space = TensorProductDomain(domain_bounds)
 
     runner = ExpectedImprovementRunner(search_space=search_space)
-    initial_xs = np.load(f"init_points/{args.benchmark}/seed_{args.seed}_initial_points.npy")
+    initial_xs = np.load(
+        f"init_points/{args.benchmark}/seed_{args.seed}_initial_points.npy"
+    )
     xs, ys = runner.run(
         f=bencher_callable,
         seed=args.seed,
@@ -73,6 +80,7 @@ def main():
     final_ys_path = f"{results_dir}/seed_{args.seed}_ys.npy"
     np.save(final_xs_path, xs)
     np.save(final_ys_path, ys)
+
 
 if __name__ == "__main__":
     main()
